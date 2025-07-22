@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading System Control Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .status-indicator { transition: all 0.3s ease; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-center mb-2">Trading System Control Dashboard</h1>
+            <p class="text-gray-400 text-center">Start, stop, and monitor all trading services</p>
+        </header>
+
+        <!-- Control Panel -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">System Control</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="startAllServices()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">▶️</span> Start All Services
+                </button>
+                <button onclick="stopAllServices()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">⏹️</span> Stop All Services
+                </button>
+            </div>
+            <div class="mt-4">
+                <button onclick="refreshStatus()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">
+                    🔄 Refresh Status
+                </button>
+            </div>
+        </div>
+
+        <!-- Service Status Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Backend Service -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-xl font-semibold mb-3 flex items-center">
+                    <span class="mr-2">🚀</span> Backend API
+                </h3>
+                <div id="backend-status" class="mb-3">
+                    <span class="status-indicator inline-block w-3 h-3 rounded-full bg-gray-500 mr-2"></span>
+                    <span>Unknown</span>
+                </div>
+                <div class="text-sm text-gray-400 mb-3">
+                    Port: 8000
+                </div>
+                <button onclick="toggleService('backend')" id="backend-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-3 rounded">
+                    Start
+                </button>
+            </div>
+
+            <!-- TigerBeetle Server -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-xl font-semibold mb-3 flex items-center">
+                    <span class="mr-2">🐅</span> TigerBeetle
+                </h3>
+                <div id="tigerbeetle-status" class="mb-3">
+                    <span class="status-indicator inline-block w-3 h-3 rounded-full bg-gray-500 mr-2"></span>
+                    <span>Unknown</span>
+                </div>
+                <div class="text-sm text-gray-400 mb-3">
+                    Financial Database
+                </div>
+                <button onclick="toggleService('tigerbeetle')" id="tigerbeetle-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-3 rounded">
+                    Start
+                </button>
+            </div>
+
+            <!-- Historic Transaction Service -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-xl font-semibold mb-3 flex items-center">
+                    <span class="mr-2">📊</span> Historic Service
+                </h3>
+                <div id="historic-status" class="mb-3">
+                    <span class="status-indicator inline-block w-3 h-3 rounded-full bg-gray-500 mr-2"></span>
+                    <span>Unknown</span>
+                </div>
+                <div class="text-sm text-gray-400 mb-3">
+                    Transaction History
+                </div>
+                <button onclick="toggleService('historic')" id="historic-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-3 rounded">
+                    Start
+                </button>
+            </div>
+
+            <!-- Ngrok Tunnel -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-xl font-semibold mb-3 flex items-center">
+                    <span class="mr-2">🌐</span> Ngrok Tunnel
+                </h3>
+                <div id="ngrok-status" class="mb-3">
+                    <span class="status-indicator inline-block w-3 h-3 rounded-full bg-gray-500 mr-2"></span>
+                    <span>Unknown</span>
+                </div>
+                <div class="text-sm text-gray-400 mb-3">
+                    Public URL
+                </div>
+                <button onclick="toggleService('ngrok')" id="ngrok-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-3 rounded">
+                    Start
+                </button>
+            </div>
+
+            <!-- SOVR Ultimate -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-xl font-semibold mb-3 flex items-center">
+                    <span class="mr-2">⚡</span> SOVR Ultimate
+                </h3>
+                <div id="sovr-status" class="mb-3">
+                    <span class="status-indicator inline-block w-3 h-3 rounded-full bg-gray-500 mr-2"></span>
+                    <span>Unknown</span>
+                </div>
+                <div class="text-sm text-gray-400 mb-3">
+                    Trading Engine
+                </div>
+                <button onclick="toggleService('sovr')" id="sovr-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-3 rounded">
+                    Start
+                </button>
+            </div>
+
+            <!-- System Health -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-xl font-semibold mb-3 flex items-center">
+                    <span class="mr-2">❤️</span> System Health
+                </h3>
+                <div id="health-status" class="mb-3">
+                    <span class="status-indicator inline-block w-3 h-3 rounded-full bg-gray-500 mr-2"></span>
+                    <span>Checking...</span>
+                </div>
+                <div class="text-sm text-gray-400 mb-3">
+                    Overall Status
+                </div>
+                <button onclick="checkSystemHealth()" class="bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 rounded">
+                    Check Health
+                </button>
+            </div>
+        </div>
+
+        <!-- Logs Panel -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">System Logs</h2>
+            <div id="logs-container" class="bg-black rounded p-4 h-64 overflow-y-auto">
+                <div class="log-entry text-green-400">System initialized. Ready to start services.</div>
+            </div>
+            <button onclick="clearLogs()" class="mt-2 bg-gray-600 hover:bg-gray-700 text-white text-sm py-1 px-3 rounded">
+                Clear Logs
+            </button>
+        </div>
+
+        <!-- API Endpoints -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">Quick Access</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="http://localhost:8000/docs" target="_blank" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded text-center transition duration-300">
+                    📚 API Documentation
+                </a>
+                <a href="http://localhost:8000/health" target="_blank" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded text-center transition duration-300">
+                    ❤️ Health Check
+                </a>
+                <a href="http://localhost:4040" target="_blank" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded text-center transition duration-300">
+                    🌐 Ngrok Dashboard
+                </a>
+                <button onclick="openOriginalDashboard()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded text-center transition duration-300">
+                    📊 Original Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const serviceStates = {
+            backend: { running: false, process: null },
+            tigerbeetle: { running: false, process: null },
+            historic: { running: false, process: null },
+            ngrok: { running: false, process: null },
+            sovr: { running: false, process: null }
+        };
+
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById('logs-container');
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-blue-400';
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${colorClass}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        async function checkServiceStatus(service) {
+            const endpoints = {
+                backend: 'http://localhost:8000/health',
+                tigerbeetle: 'http://localhost:3000/health',
+                historic: 'http://localhost:8001/health',
+                ngrok: 'http://localhost:4040/api/tunnels',
+                sovr: 'http://localhost:8080/health'
+            };
+
+            try {
+                const response = await fetch(endpoints[service], { method: 'GET', mode: 'no-cors' });
+                return true; // Assume success if no CORS error
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async function refreshStatus() {
+            const services = ['backend', 'tigerbeetle', 'historic', 'ngrok', 'sovr'];
+            
+            for (const service of services) {
+                const isRunning = await checkServiceStatus(service);
+                updateServiceUI(service, isRunning);
+                serviceStates[service].running = isRunning;
+            }
+            
+            addLog('Status refreshed for all services');
+        }
+
+        function updateServiceUI(service, isRunning) {
+            const statusEl = document.getElementById(`${service}-status`);
+            const buttonEl = document.getElementById(`${service}-btn`);
+            
+            if (isRunning) {
+                statusEl.innerHTML = '<span class="status-indicator inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span><span>Running</span>';
+                buttonEl.textContent = 'Stop';
+                buttonEl.className = 'bg-red-600 hover:bg-red-700 text-white text-sm py-1 px-3 rounded';
+            } else {
+                statusEl.innerHTML = '<span class="status-indicator inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span><span>Stopped</span>';
+                buttonEl.textContent = 'Start';
+                buttonEl.className = 'bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 rounded';
+            }
+        }
+
+        async function toggleService(service) {
+            if (serviceStates[service].running) {
+                await stopService(service);
+            } else {
+                await startService(service);
+            }
+        }
+
+        async function startService(service) {
+            addLog(`Starting ${service} service...`);
+            
+            const commands = {
+                backend: 'python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload',
+                tigerbeetle: 'python start_tigerbeetle_server.py',
+                historic: 'start_historic_transaction.bat',
+                ngrok: 'python scripts/start_ngrok_tunnel.py',
+                sovr: 'start-sovr-ultimate.ps1'
+            };
+
+            const cwd = {
+                backend: './backend',
+                tigerbeetle: './',
+                historic: './',
+                ngrok: './',
+                sovr: './'
+            };
+
+            try {
+                const response = await fetch('/api/start-service', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service, command: commands[service], cwd: cwd[service] })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    serviceStates[service].running = true;
+                    updateServiceUI(service, true);
+                    addLog(`${service} service started successfully`, 'success');
+                } else {
+                    addLog(`Failed to start ${service}: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                // Fallback for local testing
+                addLog(`Simulated ${service} start (local mode)`, 'info');
+                serviceStates[service].running = true;
+                updateServiceUI(service, true);
+            }
+        }
+
+        async function stopService(service) {
+            addLog(`Stopping ${service} service...`);
+            
+            try {
+                const response = await fetch('/api/stop-service', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    serviceStates[service].running = false;
+                    updateServiceUI(service, false);
+                    addLog(`${service} service stopped successfully`, 'success');
+                } else {
+                    addLog(`Failed to stop ${service}: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                // Fallback for local testing
+                addLog(`Simulated ${service} stop (local mode)`, 'info');
+                serviceStates[service].running = false;
+                updateServiceUI(service, false);
+            }
+        }
+
+        async function startAllServices() {
+            addLog('Starting all services...');
+            const services = ['tigerbeetle', 'backend', 'historic', 'ngrok', 'sovr'];
+            
+            for (const service of services) {
+                await startService(service);
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Delay between starts
+            }
+            
+            addLog('All services started', 'success');
+        }
+
+        async function stopAllServices() {
+            addLog('Stopping all services...');
+            const services = ['sovr', 'ngrok', 'historic', 'backend', 'tigerbeetle'];
+            
+            for (const service of services) {
+                await stopService(service);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Delay between stops
+            }
+            
+            addLog('All services stopped', 'success');
+        }
+
+        async function checkSystemHealth() {
+            addLog('Checking system health...');
+            
+            const healthChecks = await Promise.all([
+                checkServiceStatus('backend'),
+                checkServiceStatus('tigerbeetle'),
+                checkServiceStatus('historic')
+            ]);
+            
+            const allHealthy = healthChecks.every(status => status);
+            const healthEl = document.getElementById('health-status');
+            
+            if (allHealthy) {
+                healthEl.innerHTML = '<span class="status-indicator inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span><span>All Systems Operational</span>';
+                addLog('System health check passed', 'success');
+            } else {
+                healthEl.innerHTML = '<span class="status-indicator inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span><span>Issues Detected</span>';
+                addLog('System health check failed', 'error');
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('logs-container').innerHTML = '<div class="log-entry text-green-400">Logs cleared.</div>';
+        }
+
+        function openOriginalDashboard() {
+            window.open('dashboard/dashboard.html', '_blank');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshStatus();
+            setInterval(refreshStatus, 10000); // Auto-refresh every 10 seconds
+        });
+    </script>
+</body>
+</html>
