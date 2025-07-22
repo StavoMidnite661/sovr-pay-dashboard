@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Dark Trading Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-gradient-dark {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .neon-border {
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-online { background: #00ff88; }
+        .status-warning { background: #ffa502; }
+        .status-offline { background: #ff4757; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .data-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s ease;
+        }
+
+        .data-row:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .chart-container {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border-left: 3px solid transparent;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .log-request { border-left-color: #00ccff; }
+        .log-response { border-left-color: #00ff88; }
+        .log-error { border-left-color: #ff4757; }
+    </style>
+</head>
+<body class="bg-gradient-dark">
+    <!-- Header -->
+    <header class="glass-card border-b border-slate-700 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">
+                    Professional Trading Dashboard
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">Enterprise-grade market intelligence & monitoring</p>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="text-right">
+                    <div class="text-sm text-slate-400">Portfolio Value</div>
+                    <div class="text-2xl font-bold text-green-400">$2,847,392.18</div>
+                    <div class="text-xs text-green-400">+2.34% (24h)</div>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">PRO</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="max-w-7xl mx-auto p-6">
+        <!-- Top Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="metric-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-sm">Total P&L</p>
+                        <p class="text-2xl font-bold text-green-400">+$127,483.29</p>
+                        <p class="text-xs text-green-400">+12.4% vs last month</p>
+                    </div>
+                    <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-green-400 text-xl">↗</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-sm">Active Positions</p>
+                        <p class="text-2xl font-bold text-white">24</p>
+                        <p class="text-xs text-slate-400">Across 8 markets</p>
+                    </div>
+                    <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-indigo-400 text-xl">📊</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-sm">Win Rate</p>
+                        <p class="text-2xl font-bold text-white">78.5%</p>
+                        <p class="text-xs text-slate-400">Last 100 trades</p>
+                    </div>
+                    <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-yellow-400 text-xl">⚡</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-sm">Avg. Trade Size</p>
+                        <p class="text-2xl font-bold text-white">$11,847</p>
+                        <p class="text-xs text-slate-400">Per position</p>
+                    </div>
+                    <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-purple-400 text-xl">💰</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-sm">Sharpe Ratio</p>
+                        <p class="text-2xl font-bold text-white">2.34</p>
+                        <p class="text-xs text-slate-400">Risk-adjusted</p>
+                    </div>
+                    <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-red-400 text-xl">📈</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Service Status -->
+            <div class="lg:col-span-2">
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-indigo-400">System Health Monitor</h3>
+                    <div class="space-y-2">
+                        <div class="data-row font-semibold text-slate-400">
+                            <span>Service</span>
+                            <span>Status</span>
+                            <span>Response</span>
+                            <span>Uptime</span>
+                            <span>Actions</span>
+                        </div>
+                        
+                        <div class="data-row">
+                            <span class="flex items-center">
+                                <div class="status-indicator status-online mr-2"></div>
+                                Backend API
+                            </span>
+                            <span class="text-green-400">Online</span>
+                            <span class="text-green-400">12ms</span>
+                            <span class="text-slate-400">99.9%</span>
+                            <button class="text-indigo-400 hover:text-indigo-300 text-sm">Test</button>
+                        </div>
+                        
+                        <div class="data-row">
+                            <span class="flex items-center">
+                                <div class="status-indicator status-online mr-2"></div>
+                                TigerBeetle DB
+                            </span>
+                            <span class="text-green-400">Online</span>
+                            <span class="text-green-400">8ms</span>
+                            <span class="text-slate-400">99.8%</span>
+                            <button class="text-indigo-400 hover:text-indigo-300 text-sm">Test</button>
+                        </div>
+                        
+                        <div class="data-row">
+                            <span class="flex items-center">
+                                <div class="status-indicator status-warning mr-2"></div>
+                                Historic Service
+                            </span>
+                            <span class="text-yellow-400">Warning</span>
+                            <span class="text-yellow-400">45ms</span>
+                            <span class="text-slate-400">97.2%</span>
+                            <button class="text-indigo-400 hover:text-indigo-300 text-sm">Test</button>
+                        </div>
+                        
+                        <div class="data-row">
+                            <span class="flex items-center">
+                                <div class="status-indicator status-offline mr-2"></div>
+                                Ngrok Tunnel
+                            </span>
+                            <span class="text-red-400">Offline</span>
+                            <span class="text-red-400">-</span>
+                            <span class="text-slate-400">0%</span>
+                            <button class="text-indigo-400 hover:text-indigo-300 text-sm">Restart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Traffic -->
+            <div>
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-indigo-400">Live API Traffic</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Requests/sec</span>
+                            <span class="text-white font-bold">127</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Avg Response</span>
+                            <span class="text-green-400 font-bold">23ms</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Error Rate</span>
+                            <span class="text-red-400 font-bold">0.3%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Throughput</span>
+                            <span class="text-white font-bold">2.1MB/s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Log -->
+        <div class="mt-6">
+            <div class="glass-card rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-indigo-400">Real-time API Log</h3>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 rounded text-sm">Start</button>
+                        <button class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">Stop</button>
+                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-700 rounded text-sm">Clear</button>
+                    </div>
+                </div>
+                <div class="bg-black/50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <div class="log-entry log-info">
+                        <span class="text-slate-500">[14:32:45]</span>
+                        <span class="text-cyan-400">GET</span>
+                        <span class="text-white">/api/v1/transactions</span>
+                        <span class="text-green-400">200 OK</span>
+                        <span class="text-slate-400">23ms</span>
+                    </div>
+                    <div class="log-entry log-request">
+                        <span class="text-slate-500">[14:32:43]</span>
+                        <span class="text-cyan-400">POST</span>
+                        <span class="text-white">/api/v1/orders</span>
+                        <span class="text-yellow-400">202 Accepted</span>
+                        <span class="text-slate-400">45ms</span>
+                    </div>
+                    <div class="log-entry log-response">
+                        <span class="text-slate-500">[14:32:41]</span>
+                        <span class="text-cyan-400">GET</span>
+                        <span class="text-white">/api/v1/balance</span>
+                        <span class="text-green-400">200 OK</span>
+                        <span class="text-slate-400">12ms</span>
+                    </div>
+                    <div class="log-entry log-error">
+                        <span class="text-slate-500">[14:32:39]</span>
+                        <span class="text-cyan-400">PUT</span>
+                        <span class="text-white">/api/v1/positions</span>
+                        <span class="text-red-400">400 Bad Request</span>
+                        <span class="text-slate-400">89ms</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Real-time updates
+        setInterval(() => {
+            // Simulate real-time data updates
+            const metrics = document.querySelectorAll('.metric-card .text-2xl');
+            metrics.forEach(metric => {
+                if (metric.textContent.includes('$')) {
+                    const current = parseFloat(metric.textContent.replace(/[$,]/g, ''));
+                    const change = (Math.random() - 0.5) * 1000;
+                    metric.textContent = `$${(current + change).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                }
+            });
+        }, 5000);
+
+        // Add hover effects
+        document.querySelectorAll('.metric-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>
