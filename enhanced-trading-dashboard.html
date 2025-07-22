@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Trading System Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #00ff88;
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+        }
+
+        .btn-start { background: #00ff88; color: #000; }
+        .btn-stop { background: #ff4757; color: #fff; }
+        .btn-refresh { background: #00ccff; color: #fff; }
+        .btn:hover { transform: translateY(-1px); }
+
+        .monitor-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .monitor-panel {
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 15px;
+        }
+
+        .panel-title {
+            color: #00ff88;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .service-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 15px;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+        }
+
+        .service-row:last-child {
+            border-bottom: none;
+        }
+
+        .service-name {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .status-online { background: #00ff88; color: #000; }
+        .status-offline { background: #ff4757; color: #fff; }
+        .status-checking { background: #ffa502; color: #000; }
+
+        .response-time {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .api-log {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 3px solid transparent;
+        }
+
+        .log-request { border-left-color: #00ccff; }
+        .log-response { border-left-color: #00ff88; }
+        .log-error { border-left-color: #ff4757; }
+        .log-info { border-left-color: #ffa502; }
+
+        .timestamp {
+            color: #666;
+            margin-right: 10px;
+        }
+
+        .method {
+            color: #00ff88;
+            margin-right: 10px;
+        }
+
+        .endpoint {
+            color: #fff;
+            margin-right: 10px;
+        }
+
+        .payload {
+            color: #888;
+            background: #1a1a1a;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .request-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .counter-value {
+            color: #00ff88;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Enhanced Trading System Monitor</h1>
+            <p>Real-time API monitoring with request/response tracking</p>
+        </div>
+
+        <div class="request-counter">
+            Total Requests: <span class="counter-value" id="request-count">0</span>
+        </div>
+
+        <div class="control-panel">
+            <button class="btn btn-start" onclick="startMonitoring()">Start Monitoring</button>
+            <button class="btn btn-stop" onclick="stopMonitoring()">Stop Monitoring</button>
+            <button class="btn btn-refresh" onclick="clearLogs()">Clear Logs</button>
+        </div>
+
+        <div class="monitor-section">
+            <div class="monitor-panel">
+                <div class="panel-title">Service Status</div>
+                <div id="services-status"></div>
+            </div>
+
+            <div class="monitor-panel">
+                <div class="panel-title">Live API Traffic</div>
+                <div id="api-traffic"></div>
+            </div>
+        </div>
+
+        <div class="monitor-panel">
+            <div class="panel-title">API Request/Response Log</div>
+            <div class="api-log" id="api-log">
+                <div class="log-entry log-info">
+                    <span class="timestamp">[00:00:00]</span>
+                    <span>System initialized. Ready to monitor API traffic...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let requestCount = 0;
+        let monitoring = false;
+        let eventSource = null;
+
+        const services = [
+            { name: 'Backend API', endpoint: 'http://localhost:8000/health', status: 'checking' },
+            { name: 'TigerBeetle DB', endpoint: 'http://localhost:3000/health', status: 'checking' },
+            { name: 'Historic Service', endpoint: 'http://localhost:8001/health', status: 'checking' },
+            { name: 'Ngrok Tunnel', endpoint: 'http://localhost:4040/api/tunnels', status: 'checking' },
+            { name: 'SOVR Ultimate', endpoint: 'http://localhost:8080/health', status: 'checking' }
+        ];
+
+        function addLog(type, message, data = null) {
+            const log = document.getElementById('api-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            
+            let content = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            
+            if (data) {
+                content += `<div class="payload">${JSON.stringify(data, null, 2)}</div>`;
+            }
+            
+            entry.innerHTML = content;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateRequestCount() {
+            requestCount++;
+            document.getElementById('request-count').textContent = requestCount;
+        }
+
+        function renderServices() {
+            const container = document.getElementById('services-status');
+            container.innerHTML = '';
+            
+            services.forEach(service => {
+                const row = document.createElement('div');
+                row.className = 'service-row';
+                row.innerHTML = `
+                    <div class="service-name">${service.name}</div>
+                    <div class="status status-${service.status}">${service.status}</div>
+                    <div class="response-time">${service.responseTime || '-'}</div>
+                    <button onclick="testEndpoint('${service.endpoint}', '${service.name}')">Test</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        async function testEndpoint(endpoint, serviceName) {
+            addLog('request', `Testing ${serviceName}`, { endpoint, method: 'GET' });
+            
+            const startTime = Date.now();
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
+                
+                const responseTime = Date.now() - startTime;
+                
+                // Since no-cors mode, we can't read response, but we know it connected
+                addLog('response', `${serviceName} responded`, {
+                    endpoint,
+                    status: 'connected',
+                    responseTime: `${responseTime}ms`
+                });
+                
+                updateRequestCount();
+                
+                // Update service status
+                const service = services.find(s => s.name === serviceName);
+                if (service) {
+                    service.status = 'online';
+                    service.responseTime = `${responseTime}ms`;
+                }
+                
+            } catch (error) {
+                addLog('error', `${serviceName} failed`, {
+                    endpoint,
+                    error: error.message
+                });
+                
+                const service = services.find(s => s.name === serviceName);
+                if (service) {
+                    service.status = 'offline';
+                    service.responseTime = 'failed';
+                }
+            }
+            
+            renderServices();
+        }
+
+        async function checkAllServices() {
+            for (const service of services) {
+                await testEndpoint(service.endpoint, service.name);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        function startMonitoring() {
+            monitoring = true;
+            addLog('info', 'Started monitoring services...');
+            
+            // Check services every 10 seconds
+            checkAllServices();
+            const interval = setInterval(() => {
+                if (!monitoring) {
+                    clearInterval(interval);
+                    return;
+                }
+                checkAllServices();
+            }, 10000);
+        }
+
+        function stopMonitoring() {
+            monitoring = false;
+            addLog('info', 'Stopped monitoring services');
+        }
+
+        function clearLogs() {
+            const log = document.getElementById('api-log');
+            log.innerHTML = '<div class="log-entry log-info"><span class="timestamp">[00:00:00]</span><span>Logs cleared...</span></div>';
+            requestCount = 0;
+            document.getElementById('request-count').textContent = requestCount;
+        }
+
+        // Simulate incoming API requests
+        function simulateIncomingRequest() {
+            const methods = ['GET', 'POST', 'PUT', 'DELETE'];
+            const endpoints = [
+                '/api/v1/transactions',
+                '/api/v1/balance',
+                '/api/v1/history',
+                '/health',
+                '/api/v1/webhook'
+            ];
+            
+            const method = methods[Math.floor(Math.random() * methods.length)];
+            const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
+            
+            const payload = method !== 'GET' ? {
+                id: Math.random().toString(36).substr(2, 9),
+                amount: Math.floor(Math.random() * 10000),
+                currency: 'USD',
+                timestamp: new Date().toISOString()
+            } : null;
+            
+            addLog('request', `Incoming ${method} request`, {
+                endpoint: `http://localhost:8000${endpoint}`,
+                method,
+                payload
+            });
+            
+            updateRequestCount();
+            
+            // Simulate response
+            setTimeout(() => {
+                addLog('response', `Response sent`, {
+                    status: Math.random() > 0.2 ? 200 : 500,
+                    responseTime: `${Math.floor(Math.random() * 1000)}ms`
+                });
+            }, Math.random() * 2000 + 500);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderServices();
+            
+            // Add demo incoming requests
+            setInterval(() => {
+                if (monitoring) {
+                    simulateIncomingRequest();
+                }
+            }, 3000);
+        });
+
+        // WebSocket simulation for real-time updates
+        class APIMonitor {
+            constructor() {
+                this.listeners = [];
+            }
+
+            addListener(callback) {
+                this.listeners.push(callback);
+            }
+
+            notify(data) {
+                this.listeners.forEach(callback => callback(data));
+            }
+
+            simulateAPIRequest(data) {
+                this.notify({
+                    type: 'request',
+                    method: data.method,
+                    endpoint: data.endpoint,
+                    payload: data.payload,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }
+
+        const apiMonitor = new APIMonitor();
+        apiMonitor.addListener((data) => {
+            addLog('request', `API ${data.method} ${data.endpoint}`, data.payload);
+        });
+    </script>
+</body>
+</html>
