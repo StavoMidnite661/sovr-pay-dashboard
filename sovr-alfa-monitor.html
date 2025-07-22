@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOVR Alfa Node Zero Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff88;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #001a00 0%, #003300 100%);
+            border: 1px solid #00ff88;
+            border-radius: 4px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #66ff66;
+            font-size: 0.9rem;
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: 1px solid #00ff88;
+            background: transparent;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: #00ff88;
+            color: #000;
+            box-shadow: 0 0 15px #00ff88;
+        }
+
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: #001a00;
+            border: 1px solid #00ff88;
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            color: #00ff88;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #00ff88;
+            padding-bottom: 5px;
+        }
+
+        .listener-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 15px;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #003300;
+            font-size: 0.9rem;
+        }
+
+        .listener-row:last-child {
+            border-bottom: none;
+        }
+
+        .listener-name {
+            color: #66ff66;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 2px;
+            font-size: 0.8rem;
+        }
+
+        .status-active { background: #00ff88; color: #000; }
+        .status-inactive { background: #ff0044; color: #fff; }
+        .status-listening { background: #ffa500; color: #000; }
+
+        .traffic-log {
+            background: #000;
+            border: 1px solid #00ff88;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 2px solid #00ff88;
+            margin-left: 5px;
+        }
+
+        .log-timestamp {
+            color: #66ff66;
+            margin-right: 10px;
+        }
+
+        .log-method {
+            color: #00ff88;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .log-endpoint {
+            color: #ffffff;
+            margin-right: 10px;
+        }
+
+        .log-payload {
+            color: #888;
+            background: #001a00;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 2px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-headers {
+            color: #66ff66;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .connection-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #001a00;
+            border: 1px solid #00ff88;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .counter-value {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .endpoint-display {
+            color: #66ff66;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .listener-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .detail-item {
+            background: #001a00;
+            padding: 5px;
+            border-radius: 2px;
+            font-size: 0.8rem;
+        }
+
+        .detail-label {
+            color: #888;
+            margin-right: 5px;
+        }
+
+        .detail-value {
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SOVR Alfa Node Zero Monitor</h1>
+            <p>Backend API Listener Monitoring & Traffic Analysis</p>
+        </div>
+
+        <div class="connection-counter">
+            Active Connections: <span class="counter-value" id="connection-count">0</span>
+        </div>
+
+        <div class="control-panel">
+            <button class="btn" onclick="startListeners()">Start Listeners</button>
+            <button class="btn" onclick="stopListeners()">Stop Listeners</button>
+            <button class="btn" onclick="clearTrafficLog()">Clear Logs</button>
+            <button class="btn" onclick="exportLogs()">Export Logs</button>
+        </div>
+
+        <div class="monitor-grid">
+            <div class="panel">
+                <div class="panel-title">API Listeners</div>
+                <div id="listeners-grid"></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Connection Stats</div>
+                <div id="connection-stats"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Live API Traffic</div>
+            <div class="traffic-log" id="traffic-log">
+                <div class="log-entry">
+                    <span class="log-timestamp">[00:00:00]</span>
+                    <span>SOVR Alfa Node Zero monitoring initialized...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let connectionCount = 0;
+        let listenersActive = false;
+        let logData = [];
+
+        const alfaListeners = [
+            {
+                name: 'Transaction API',
+                endpoint: '/api/v1/transactions',
+                port: 8000,
+                protocol: 'HTTP/1.1',
+                status: 'inactive',
+                connections: 0,
+                lastActivity: null
+            },
+            {
+                name: 'Balance API',
+                endpoint: '/api/v1/balance',
+                port: 8000,
+                protocol: 'HTTP/1.1',
+                status: 'inactive',
+                connections: 0,
+                lastActivity: null
+            },
+            {
+                name: 'Webhook Listener',
+                endpoint: '/api/v1/webhook',
+                port: 8000,
+                protocol: 'HTTP/1.1',
+                status: 'inactive',
+                connections: 0,
+                lastActivity: null
+            },
+            {
+                name: 'Health Check',
+                endpoint: '/health',
+                port: 8000,
+                protocol: 'HTTP/1.1',
+                status: 'inactive',
+                connections: 0,
+                lastActivity: null
+            },
+            {
+                name: 'Metrics API',
+                endpoint: '/api/v1/metrics',
+                port: 8000,
+                protocol: 'HTTP/1.1',
+                status: 'inactive',
+                connections: 0,
+                lastActivity: null
+            }
+        ];
+
+        function addTrafficLog(type, method, endpoint, payload = null, headers = null) {
+            const log = document.getElementById('traffic-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            let content = `<span class="log-timestamp">[${timestamp}]</span>`;
+            content += `<span class="log-method">${method}</span>`;
+            content += `<span class="log-endpoint">${endpoint}</span>`;
+            
+            if (payload) {
+                content += `<div class="log-payload">${JSON.stringify(payload, null, 2)}</div>`;
+            }
+            
+            if (headers) {
+                content += `<div class="log-headers">Headers: ${JSON.stringify(headers, null, 2)}</div>`;
+            }
+            
+            entry.innerHTML = content;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+            
+            // Store log data
+            logData.push({
+                timestamp,
+                type,
+                method,
+                endpoint,
+                payload,
+                headers
+            });
+        }
+
+        function renderListeners() {
+            const grid = document.getElementById('listeners-grid');
+            grid.innerHTML = '';
+            
+            alfaListeners.forEach(listener => {
+                const row = document.createElement('div');
+                row.className = 'listener-row';
+                row.innerHTML = `
+                    <div class="listener-name">${listener.name}</div>
+                    <div class="status status-${listener.status}">${listener.status}</div>
+                    <div>${listener.connections}</div>
+                    <button onclick="testListener('${listener.endpoint}')">Test</button>
+                `;
+                grid.appendChild(row);
+            });
+        }
+
+        function renderConnectionStats() {
+            const stats = document.getElementById('connection-stats');
+            const totalConnections = alfaListeners.reduce((sum, l) => sum + l.connections, 0);
+            const activeListeners = alfaListeners.filter(l => l.status === 'active').length;
+            
+            stats.innerHTML = `
+                <div class="listener-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Total Listeners:</span>
+                        <span class="detail-value">${alfaListeners.length}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Active:</span>
+                        <span class="detail-value">${activeListeners}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Total Connections:</span>
+                        <span class="detail-value">${totalConnections}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Last Activity:</span>
+                        <span class="detail-value">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function testListener(endpoint) {
+            const method = endpoint.includes('webhook') ? 'POST' : 'GET';
+            const payload = method === 'POST' ? {
+                id: `TXN_${Date.now()}`,
+                amount: Math.floor(Math.random() * 10000),
+                currency: 'USD',
+                timestamp: new Date().toISOString(),
+                source: 'SOVR_Alfa_Node_Zero'
+            } : null;
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Source': 'SOVR-Alfa-Monitor',
+                'X-Timestamp': Date.now().toString()
+            };
+
+            addTrafficLog('request', method, endpoint, payload, headers);
+            
+            const startTime = Date.now();
+            try {
+                const response = await fetch(`http://localhost:8000${endpoint}`, {
+                    method,
+                    headers,
+                    body: payload ? JSON.stringify(payload) : undefined,
+                    mode: 'no-cors'
+                });
+                
+                const responseTime = Date.now() - startTime;
+                
+                addTrafficLog('response', 'RESPONSE', endpoint, {
+                    status: 'connected',
+                    responseTime: `${responseTime}ms`,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Update listener
+                const listener = alfaListeners.find(l => l.endpoint === endpoint);
+                if (listener) {
+                    listener.connections++;
+                    listener.status = 'active';
+                    listener.lastActivity = new Date().toISOString();
+                }
+                
+                connectionCount++;
+                document.getElementById('connection-count').textContent = connectionCount;
+                
+            } catch (error) {
+                addTrafficLog('error', 'ERROR', endpoint, {
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+                
+                const listener = alfaListeners.find(l => l.endpoint === endpoint);
+                if (listener) {
+                    listener.status = 'inactive';
+                }
+            }
+            
+            renderListeners();
+            renderConnectionStats();
+        }
+
+        function startListeners() {
+            listenersActive = true;
+            alfaListeners.forEach(listener => {
+                listener.status = 'listening';
+            });
+            
+            addTrafficLog('info', 'START', 'All SOVR Alfa listeners activated');
+            renderListeners();
+            renderConnectionStats();
+            
+            // Start periodic monitoring
+            setInterval(() => {
+                if (listenersActive) {
+                    alfaListeners.forEach(listener => {
+                        testListener(listener.endpoint);
+                    });
+                }
+            }, 5000);
+        }
+
+        function stopListeners() {
+            listenersActive = false;
+            alfaListeners.forEach(listener => {
+                listener.status = 'inactive';
+            });
+            
+            addTrafficLog('info', 'STOP', 'All SOVR Alfa listeners deactivated');
+            renderListeners();
+            renderConnectionStats();
+        }
+
+        function clearTrafficLog() {
+            const log = document.getElementById('traffic-log');
+            log.innerHTML = '<div class="log-entry"><span class="log-timestamp">[00:00:00]</span><span>SOVR Alfa logs cleared...</span></div>';
+            logData = [];
+        }
+
+        function exportLogs() {
+            const dataStr = JSON.stringify(logData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `sovr-alfa-logs-${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderListeners();
+            renderConnectionStats();
+            
+            // Auto-refresh every 10 seconds
+            setInterval(() => {
+                renderConnectionStats();
+            }, 10000);
+        });
+
+        // WebSocket simulation for real-time updates
+        class SOVRAlfaMonitor {
+            constructor() {
+                this.isActive = false;
+            }
+
+            start() {
+                this.isActive = true;
+                startListeners();
+            }
+
+            stop() {
+                this.isActive = false;
+                stopListeners();
+            }
+
+            log(data) {
+                addTrafficLog(data.type, data.method, data.endpoint, data.payload, data.headers);
+            }
+        }
+
+        const monitor = new SOVRAlfaMonitor();
+    </script>
+</body>
+</html>
